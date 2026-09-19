@@ -1,6 +1,7 @@
 import "server-only";
 import fs from "node:fs/promises";
 import path from "node:path";
+import { PublicError } from "./errors";
 
 /**
  * Key/value persistence. Production uses Vercel KV / Upstash (same KV_REST_API_* env vars as before).
@@ -30,6 +31,16 @@ async function writeFileDb(db: Record<string, unknown>) {
   await fs.writeFile(FILE, JSON.stringify(db, null, 1));
 }
 
+/** Turn a raw Upstash/Redis failure into something the admin can act on (and log the real reason). */
+function explainKv(e: unknown): PublicError {
+  const m = e instanceof Error ? e.message : String(e);
+  console.error("[kv] write failed:", m);
+  if (/NOPERM|read.?only/i.test(m)) return new PublicError("The database rejected the save: KV_REST_API_TOKEN is a READ-ONLY token. In Vercel set KV_REST_API_TOKEN to the read-write token from Upstash (REST API section), then Redeploy.", 503);
+  if (/WRONGPASS|unauthor|invalid token|forbidden|\b40[13]\b/i.test(m)) return new PublicError("The database rejected the token. Make sure KV_REST_API_TOKEN belongs to the same database as KV_REST_API_URL, then Redeploy.", 503);
+  if (/ENOTFOUND|fetch failed|invalid url|failed to parse url|ECONNREFUSED|getaddrinfo/i.test(m)) return new PublicError("The database URL can't be reached. KV_REST_API_URL must start with https:// and come from Upstash. Fix it, then Redeploy.", 503);
+  return new PublicError("The database returned an error. In Vercel open Logs and look for “[kv] write failed”.", 502);
+}
+
 export async function kvGet<T>(key: string): Promise<T | null> {
   try {
     if (hasKV()) {
@@ -45,8 +56,12 @@ export async function kvGet<T>(key: string): Promise<T | null> {
 
 export async function kvSet(key: string, value: unknown): Promise<void> {
   if (hasKV()) {
-    const { kv } = await import("@vercel/kv");
-    await kv.set(key, value);
+    try {
+      const { kv } = await import("@vercel/kv");
+      await kv.set(key, value);
+    } catch (e) {
+      throw explainKv(e);
+    }
     return;
   }
   if (isDev()) {
@@ -60,8 +75,12 @@ export async function kvSet(key: string, value: unknown): Promise<void> {
 
 export async function kvDel(key: string): Promise<void> {
   if (hasKV()) {
-    const { kv } = await import("@vercel/kv");
-    await kv.del(key);
+    try {
+      const { kv } = await import("@vercel/kv");
+      await kv.del(key);
+    } catch (e) {
+      throw explainKv(e);
+    }
     return;
   }
   if (isDev()) {

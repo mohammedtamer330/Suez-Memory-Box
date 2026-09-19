@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getExperienceData } from "@/lib/data";
+import { SystemCheck } from "@/components/admin/SystemCheck";
 
 export default async function Overview() {
   const { people, group, settings } = await getExperienceData();
@@ -15,6 +16,7 @@ export default async function Overview() {
         <Link href="/admin/people" className="stat"><strong>{total}</strong><span>photos in books</span></Link>
         <Link href="/admin/people" className="stat"><strong>{withPhotos}/{people.length}</strong><span>books with photos</span></Link>
       </div>
+      <SystemCheck />
       {empty.length > 0 && (
         <section className="card stack-s">
           <h2>Books still empty</h2>
