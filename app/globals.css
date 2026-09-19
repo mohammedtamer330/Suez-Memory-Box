@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+:root {
+  --night: #05070a;
+  --navy: #0d1626;
+  --navy-2: #13223a;
+  --charcoal: #15171a;
+  --warm-black: #120e0a;
+  --paper: #e6d9bd;
+  --paper-edge: #efe4cb;
+  --cardboard: #9c7245;
+  --cardboard-dark: #5f4126;
+  --orange: #d68a4c;
+  --coral: #c25f4c;
+  --blue: #6b91a6;
+  --yellow: #d4b15a;
+  --cream: #efe4cb;
+  --ink: #1b1712;
+  --font-display: "Newsreader Variable", "Iowan Old Style", Georgia, serif;
+  --font-ui: "Hanken Grotesk Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-hand: "Covered By Your Grace", "Bradley Hand", cursive;
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+}
+
+html { background: var(--night); color: var(--cream); -webkit-text-size-adjust: 100%; overflow-x: clip; }
+body { margin: 0; font-family: var(--font-ui); background: var(--night); overflow-x: clip; }
+html.is-locked, html.is-locked body { overflow: hidden; overscroll-behavior: none; }
+
+.font-display { font-family: var(--font-display); }
+.font-hand { font-family: var(--font-hand); }
+
+a:focus-visible, button:focus-visible, [tabindex]:focus-visible, input:focus-visible, select:focus-visible {
+  outline: 2px solid var(--yellow);
+  outline-offset: 3px;
+}
+.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; padding: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
+}
