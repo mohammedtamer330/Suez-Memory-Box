@@ -1,4 +1,5 @@
 import "server-only";
+import { PublicError } from "./errors";
 import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { ADMIN_COOKIE_NAME, verifySessionToken } from "./auth";
@@ -33,6 +34,7 @@ export async function requireAdmin(request?: Request): Promise<NextResponse | nu
 /** Turn any thrown error into a safe JSON response — never leak stack traces or DB errors. */
 export function safeError(e: unknown, fallback = "Something went wrong. Please try again."): NextResponse {
   if (e instanceof StoreUnavailableError) return NextResponse.json({ error: e.message }, { status: 503 });
+  if (e instanceof PublicError) { console.error("[api]", e.message); return NextResponse.json({ error: e.message }, { status: e.status }); }
   console.error("[api]", e instanceof Error ? e.message : e);
   return NextResponse.json({ error: fallback }, { status: 500 });
 }
